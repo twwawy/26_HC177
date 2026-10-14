@@ -3,13 +3,12 @@
 # MuJoCo 보행·LiDAR 뷰어 사용법
 
 최종 갱신: 2026-09-06. 기본 모드는 **펌웨어 제어기 연속 보행 + stage31 RL residual + MJX 동역학**이다.
-사용자 요청에 따라 이번 수정의 GUI·추론·동역학 보행 검증은 실행하지 않았다.
 
 ## 시작과 환경
 
 ```bash
-cd /home/huro/Hexapod-Robot
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/view_foothold_planner.sh --terrain steps
 ```
 
@@ -32,7 +31,7 @@ GPU 정책/물리 계산은 별도 프로세스, LiDAR/map 계산은 CPU 스레�
 현재 루트 `mjx/` 학습 코드는 v4/100 mm 계약이다. 뷰어의 stage31 v3/18-D 가중치에 이를 섞지 않는다.
 당시 미커밋 코드 전체가 보관되지 않았으므로 기록 영상의 정확한 재현을 보장하지 않는다.
 
-## 제어 구조와 이번 수정 이유
+## 제어 구조와 경로 주입
 
 ```text
 속도·높이 명령 + 몸체/접촉 상태 → 펌웨어 nominal gait ─┐
@@ -44,8 +43,8 @@ LiDAR 높이 샘플 ↔ 동일 XY의 simulator GT → 비교 지표/저장 전�
 ```
 
 이전 구현은 관측된 경로를 월드 좌표 발 목표로 덮어쓰고, 착지 후 그 위치를 펌웨어 foot memory에
-되돌려 넣었다. 이 경로와 펌웨어의 접촉·posture·지지 궤적이 충돌할 수 있었다. 사용자가 관측된
-착지점 진입 때 IK 문제를 보고했으며, 실행 재현으로 직접 원인을 확정한 것은 아니다.
+되돌려 넣었다. 이 경로와 펌웨어의 접촉·posture·지지 궤적이 충돌할 수 있었다. 관측된
+착지점 진입 시 IK 문제가 보고됐으나, 해당 증상의 직접 원인은 실행 재현이 필요하다.
 
 현재는 외부 경로/stance anchor 주입과 다리별 제어 모드 전환을 제거했다. 원래 펌웨어 step이
 nominal 궤적, 스윙/지지/late landing, foot memory, posture, residual 해석, IK, 관절 속도 제한을 맡는다.
@@ -87,9 +86,9 @@ nominal 궤적, 스윙/지지/late landing, foot memory, posture, residual 해�
 | F / T / V | 추적 카메라 / 위에서 보기 / 전체 코스 |
 
 A/D 횡이동은 checkpoint command에 없어 지원하지 않는다. 원본 run은 전진 0.06~0.12 m/s,
-yaw=0으로 학습했으므로 후진·회전과 sensor 입력에서의 성능은 사용자가 별도로 확인한다.
+yaw=0으로 학습했으므로 후진·회전과 센서 입력에서의 성능은 별도 평가 대상이다.
 
-## 사용자 확인 순서
+## 실행 순서
 
 먼저 같은 동역학 환경에서 residual 없이 비교한다.
 
@@ -111,7 +110,6 @@ bash scripts/view_foothold_planner.sh --terrain steps --residual-scale 0
 2 cm heightfield는 원래 상자 모서리와 좁은 돌출물을 근사한다.
 
 기본 measured TF는 밑면 중심에서 높이 **215 mm**, 전방 **13.529 mm**, 전방 기울기 **45°**다.
-38° 변경은 사용자 요청으로 롤백했다.
 base 기준 XYZ `(0, -0.013529, 0.1642) m`, RPY `(0, 45°, -90°)`다.
 MID-360 FOV는 수평 360°, 수직 -7°~+52°, 거리 0.1~8 m, 기본 720×64 angular rays다.
 실제 Livox 비반복 스캔 패턴의 재현은 아니다. URDF CAD 장착 chain과 measured override는 별도다.

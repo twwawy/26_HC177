@@ -1,259 +1,45 @@
-# Integration file manifest
+# 지형 적응 보행 관련 모듈
 
-Base main: `de77791d6386309295be5c8d173a1f51eca99930`. Adaptive source: `f9d80587ff086a1f3df51b81185e742094c109c9`.
-No merge commit; import commit `c5441de` selectively restores adaptive files.
+## STM32
 
-## main 기반 STM32 확장 파일
+`SW/STM32/workspace/Hexapod/Core/` 아래에 실시간 제어 코드를 둔다.
+헤더는 `Inc/`, 구현은 `Src/`에 같은 분류로 배치한다.
 
-- `SW/STM32/workspace/Hexapod/Core/Inc/app/hexapod_app.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/common/robot_config.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/common/robot_types.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/communication/adaptive_spi_protocol.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/communication/jetson_spi.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/foot_trajectory.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/gait_manager.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/rl_controller.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/swing_trajectory.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/workspace_limiter.h`
-- `SW/STM32/workspace/Hexapod/Core/Src/app/hexapod_app.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/communication/adaptive_spi_protocol.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/communication/jetson_spi.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/foot_trajectory.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/gait_manager.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/rl_controller.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/swing_trajectory.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/workspace_limiter.c`
+| 모듈 | 역할 |
+|---|---|
+| `app/hexapod_app` | 센서·통신·보행 제어 실행 주기 연결 |
+| `common/robot_config`, `common/robot_types` | 공통 상수와 상태·계획 자료형 |
+| `communication/adaptive_spi_protocol` | 128바이트 실행·관측 프레임 코덱 |
+| `communication/jetson_spi` | SPI DMA와 수신 처리 |
+| `high_control/rl_controller` | 계획 승인, 관측 유효 시간, 명령 타임아웃 |
+| `high_control/gait_manager` | 보행 위상과 Tripod·Wave 전환 |
+| `high_control/foot_trajectory`, `high_control/swing_trajectory` | 실행 계획을 발끝 궤적으로 변환 |
+| `high_control/workspace_limiter` | 발 작업영역과 관절 한계 처리 |
 
-## 선택적 import commit 파일
+## Jetson
 
-`docs/ADAPTIVE_INTEGRATION_ANALYSIS.md`는 새 분석 문서이며 나머지는 adaptive source에서 가져왔다.
+| 파일 | 역할 |
+|---|---|
+| `SW/Jetson/adaptive_runtime.py` | 점군과 상태 추정값을 받아 실행 계획 계산 |
+| `SW/Jetson/adaptive_policy_contract.py` | 정책 입출력 규격 |
+| `SW/Jetson/adaptive_execution_plan.py` | 최종 실행 계획 생성 |
+| `SW/Jetson/adaptive_spi_protocol.py` | SPI 프레임 코덱 |
+| `SW/Jetson/make_offline_fixture.py` | 오프라인 입력 데이터 생성 |
 
-- `docs/ADAPTIVE_INTEGRATION_ANALYSIS.md`
-- `docs/HEXAPOD_FOOTHOLD_PREVIEW_USAGE.md`
-- `docs/HEXAPOD_HYBRID_GAIT_ANALYSIS.md`
-- `docs/HEXAPOD_MJX_ADAPTIVE_GAIT_LEARNING_PLAN.md`
-- `docs/HEXAPOD_MJX_ADAPTIVE_GAIT_USAGE.md`
-- `mjx/.gitignore`
-- `mjx/FIRMWARE_BASE.md`
-- `mjx/RL_DESIGN.md`
-- `mjx/adaptive_foothold_estimator.py`
-- `mjx/adaptive_gait_controller.py`
-- `mjx/adaptive_gait_env.py`
-- `mjx/adaptive_gait_perception.py`
-- `mjx/adaptive_gait_policy.py`
-- `mjx/benchmark_hexapod_vs_go1.py`
-- `mjx/continuous_foothold_gait.py`
-- `mjx/domain_randomization.py`
-- `mjx/export_asset_manifest.py`
-- `mjx/export_isaac_asset_mjcf.py`
-- `mjx/export_isaac_contract.py`
-- `mjx/firmware_controller.py`
-- `mjx/firmware_mjx_controller.py`
-- `mjx/foothold_feasibility.py`
-- `mjx/foothold_link_model.py`
-- `mjx/foothold_planner.py`
-- `mjx/foothold_policy_adapter.py`
-- `mjx/foothold_policy_controller.py`
-- `mjx/foothold_policy_observation.py`
-- `mjx/foothold_policy_scene.py`
-- `mjx/foothold_policy_worker.py`
-- `mjx/foothold_preview_runtime.py`
-- `mjx/foothold_preview_scene.py`
-- `mjx/golden/asset_manifest_v1.json`
-- `mjx/golden/isaac_contract_v1_flat_seed0.json`
-- `mjx/golden/isaac_contract_v1_flat_seed0.npz`
-- `mjx/hybrid_gait_supervisor.py`
-- `mjx/lidar_extrinsics.py`
-- `mjx/mid360_profile.py`
-- `mjx/native/firmware_controller_bridge.c`
-- `mjx/policies/progress-v2-stage31-level6/README.md`
-- `mjx/policies/progress-v2-stage31-level6/environment.json`
-- `mjx/policies/progress-v2-stage31-level6/manifest.json`
-- `mjx/policies/progress-v2-stage31-level6/recorded_score.json`
-- `mjx/policies/progress-v2-stage31-level6/weights/_CHECKPOINT_METADATA`
-- `mjx/policies/progress-v2-stage31-level6/weights/_METADATA`
-- `mjx/policies/progress-v2-stage31-level6/weights/_sharding`
-- `mjx/policies/progress-v2-stage31-level6/weights/array_metadatas/process_0`
-- `mjx/policies/progress-v2-stage31-level6/weights/d/e5c320be86dcdc2c2ccced0a023af177`
-- `mjx/policies/progress-v2-stage31-level6/weights/manifest.ocdbt`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/58917114a525aaeb2369c6990415ff52`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/7798773c7346869051ab8dd63c41e8d0`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/a57d5c38e7a862e90d7e455739458e3d`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/dfc74eb818d5b3340effa4251c6f2d5c`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/manifest.ocdbt`
-- `mjx/policies/progress-v2-stage31-level6/weights/ppo_network_config.json`
-- `mjx/policy_video.py`
-- `mjx/prepare_rl_scene.py`
-- `mjx/prepare_scene.py`
-- `mjx/prepare_urdf.py`
-- `mjx/requirements-train.txt`
-- `mjx/requirements.txt`
-- `mjx/rough_terrain_env.py`
-- `mjx/run_controller.py`
-- `mjx/run_firmware_base.py`
-- `mjx/servo_model.py`
-- `mjx/teacher_distillation.py`
-- `mjx/teacher_manifests/walking-teachers-v1.json`
-- `mjx/terrain_curriculum.py`
-- `mjx/tests/run_pitch_smoke_e2e.py`
-- `mjx/tests/test_adaptive_hybrid.py`
-- `mjx/tests/test_cli_and_gate.py`
-- `mjx/tests/test_command_inputs.py`
-- `mjx/tests/test_command_space.py`
-- `mjx/tests/test_domain_randomization.py`
-- `mjx/tests/test_firmware_mjx_controller.py`
-- `mjx/tests/test_isaac_contract_artifacts.py`
-- `mjx/tests/test_pitch_ff.py`
-- `mjx/tests/test_servo_model.py`
-- `mjx/tests/test_stair_penalties.py`
-- `mjx/tests/test_swing_boost.py`
-- `mjx/tests/test_teacher_distillation.py`
-- `mjx/tests/test_training_artifacts.py`
-- `mjx/tests/verify_plan_anchors.py`
-- `mjx/train_adaptive_gait.py`
-- `mjx/train_competence_curriculum.py`
-- `mjx/train_rough_terrain.py`
-- `mjx/tripod_controller.py`
-- `mjx/view_adaptive_gait.py`
-- `mjx/view_foothold_explorer.py`
-- `mjx/view_foothold_planner.py`
-- `mjx/view_rl_scene.py`
-- `mjx/view_robot.py`
-- `mjx/view_trained_policy.py`
-- `mjx/wave_gait_scheduler.py`
-- `scripts/train_adaptive_gait.sh`
-- `scripts/view_foothold_planner.sh`
-- `scripts/view_trained_policy.sh`
+## MJX 시뮬레이션·학습
 
-## 최종 변경 파일 전체 (main 대비 130개)
+| 파일·폴더 | 역할 |
+|---|---|
+| `mjx/adaptive_contract.py` | 제어·정책 버전과 공통 규격 |
+| `mjx/adaptive_foothold_estimator.py`, `mjx/foothold_feasibility.py` | 착지 후보와 실행 가능성 계산 |
+| `mjx/adaptive_gait_controller.py`, `mjx/wave_gait_scheduler.py` | 발 궤적과 보행 순서 |
+| `mjx/hybrid_gait_supervisor.py` | Tripod·짧은 보폭·Wave·정지 판단 |
+| `mjx/adaptive_gait_perception.py`, `mjx/adaptive_grid.py` | 지형 관측과 지역 높이 지도 |
+| `mjx/adaptive_grid_network.py`, `mjx/adaptive_gait_policy.py` | 정책 네트워크와 체크포인트 |
+| `mjx/adaptive_gait_env.py` | 학습 환경, 관측과 보상 |
+| `mjx/train_adaptive_curriculum.py`, `mjx/train_adaptive_gait.py` | 단계별 학습과 PPO |
+| `mjx/view_foothold_planner.py`, `mjx/view_adaptive_gait.py` | 보행·착지 후보 뷰어 |
+| `mjx/policies/` | 보관된 학습 정책과 출처 기록 |
+| `mjx/tests/` | 제어 계약과 모듈 시험 코드 |
 
-- `.gitignore`
-- `README.md`
-- `SW/Jetson/README.md`
-- `SW/Jetson/adaptive_execution_plan.py`
-- `SW/Jetson/adaptive_policy_contract.py`
-- `SW/Jetson/adaptive_runtime.py`
-- `SW/Jetson/adaptive_spi_protocol.py`
-- `SW/Jetson/make_offline_fixture.py`
-- `SW/STM32/SB_RL_GAIT_SPI_CHANGE_PLAN.md`
-- `SW/STM32/workspace/Hexapod/Core/Inc/app/hexapod_app.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/common/robot_config.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/common/robot_types.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/communication/adaptive_spi_protocol.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/communication/jetson_spi.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/foot_trajectory.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/gait_manager.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/rl_controller.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/swing_trajectory.h`
-- `SW/STM32/workspace/Hexapod/Core/Inc/high_control/workspace_limiter.h`
-- `SW/STM32/workspace/Hexapod/Core/Src/app/hexapod_app.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/communication/adaptive_spi_protocol.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/communication/jetson_spi.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/foot_trajectory.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/gait_manager.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/rl_controller.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/swing_trajectory.c`
-- `SW/STM32/workspace/Hexapod/Core/Src/high_control/workspace_limiter.c`
-- `docs/ADAPTIVE_INTEGRATION_ANALYSIS.md`
-- `docs/ADAPTIVE_INTEGRATION_FILES.md`
-- `docs/ADAPTIVE_INTEGRATION_V4.md`
-- `docs/ADAPTIVE_SPI_V3.md`
-- `docs/HEXAPOD_FOOTHOLD_PREVIEW_USAGE.md`
-- `docs/HEXAPOD_HYBRID_GAIT_ANALYSIS.md`
-- `docs/HEXAPOD_MJX_ADAPTIVE_GAIT_LEARNING_PLAN.md`
-- `docs/HEXAPOD_MJX_ADAPTIVE_GAIT_USAGE.md`
-- `mjx/.gitignore`
-- `mjx/FIRMWARE_BASE.md`
-- `mjx/RL_DESIGN.md`
-- `mjx/adaptive_contract.py`
-- `mjx/adaptive_foothold_estimator.py`
-- `mjx/adaptive_gait_controller.py`
-- `mjx/adaptive_gait_env.py`
-- `mjx/adaptive_gait_perception.py`
-- `mjx/adaptive_gait_policy.py`
-- `mjx/benchmark_hexapod_vs_go1.py`
-- `mjx/continuous_foothold_gait.py`
-- `mjx/domain_randomization.py`
-- `mjx/export_asset_manifest.py`
-- `mjx/export_isaac_asset_mjcf.py`
-- `mjx/export_isaac_contract.py`
-- `mjx/firmware_controller.py`
-- `mjx/firmware_mjx_controller.py`
-- `mjx/foothold_feasibility.py`
-- `mjx/foothold_link_model.py`
-- `mjx/foothold_planner.py`
-- `mjx/foothold_policy_adapter.py`
-- `mjx/foothold_policy_controller.py`
-- `mjx/foothold_policy_observation.py`
-- `mjx/foothold_policy_scene.py`
-- `mjx/foothold_policy_worker.py`
-- `mjx/foothold_preview_runtime.py`
-- `mjx/foothold_preview_scene.py`
-- `mjx/golden/asset_manifest_v1.json`
-- `mjx/golden/isaac_contract_v1_flat_seed0.json`
-- `mjx/golden/isaac_contract_v1_flat_seed0.npz`
-- `mjx/hybrid_gait_supervisor.py`
-- `mjx/lidar_extrinsics.py`
-- `mjx/mid360_profile.py`
-- `mjx/native/firmware_controller_bridge.c`
-- `mjx/policies/progress-v2-stage31-level6/README.md`
-- `mjx/policies/progress-v2-stage31-level6/environment.json`
-- `mjx/policies/progress-v2-stage31-level6/manifest.json`
-- `mjx/policies/progress-v2-stage31-level6/recorded_score.json`
-- `mjx/policies/progress-v2-stage31-level6/weights/_CHECKPOINT_METADATA`
-- `mjx/policies/progress-v2-stage31-level6/weights/_METADATA`
-- `mjx/policies/progress-v2-stage31-level6/weights/_sharding`
-- `mjx/policies/progress-v2-stage31-level6/weights/array_metadatas/process_0`
-- `mjx/policies/progress-v2-stage31-level6/weights/d/e5c320be86dcdc2c2ccced0a023af177`
-- `mjx/policies/progress-v2-stage31-level6/weights/manifest.ocdbt`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/58917114a525aaeb2369c6990415ff52`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/7798773c7346869051ab8dd63c41e8d0`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/a57d5c38e7a862e90d7e455739458e3d`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/d/dfc74eb818d5b3340effa4251c6f2d5c`
-- `mjx/policies/progress-v2-stage31-level6/weights/ocdbt.process_0/manifest.ocdbt`
-- `mjx/policies/progress-v2-stage31-level6/weights/ppo_network_config.json`
-- `mjx/policy_video.py`
-- `mjx/prepare_rl_scene.py`
-- `mjx/prepare_scene.py`
-- `mjx/prepare_urdf.py`
-- `mjx/requirements-train.txt`
-- `mjx/requirements.txt`
-- `mjx/rough_terrain_env.py`
-- `mjx/run_controller.py`
-- `mjx/run_firmware_base.py`
-- `mjx/servo_model.py`
-- `mjx/teacher_distillation.py`
-- `mjx/teacher_manifests/walking-teachers-v1.json`
-- `mjx/terrain_curriculum.py`
-- `mjx/tests/run_pitch_smoke_e2e.py`
-- `mjx/tests/test_adaptive_hybrid.py`
-- `mjx/tests/test_adaptive_v4.py`
-- `mjx/tests/test_cli_and_gate.py`
-- `mjx/tests/test_command_inputs.py`
-- `mjx/tests/test_command_space.py`
-- `mjx/tests/test_domain_randomization.py`
-- `mjx/tests/test_firmware_mjx_controller.py`
-- `mjx/tests/test_isaac_contract_artifacts.py`
-- `mjx/tests/test_pitch_ff.py`
-- `mjx/tests/test_servo_model.py`
-- `mjx/tests/test_stair_penalties.py`
-- `mjx/tests/test_swing_boost.py`
-- `mjx/tests/test_teacher_distillation.py`
-- `mjx/tests/test_training_artifacts.py`
-- `mjx/tests/verify_plan_anchors.py`
-- `mjx/train_adaptive_gait.py`
-- `mjx/train_competence_curriculum.py`
-- `mjx/train_rough_terrain.py`
-- `mjx/tripod_controller.py`
-- `mjx/view_adaptive_gait.py`
-- `mjx/view_foothold_explorer.py`
-- `mjx/view_foothold_planner.py`
-- `mjx/view_rl_scene.py`
-- `mjx/view_robot.py`
-- `mjx/view_trained_policy.py`
-- `mjx/wave_gait_scheduler.py`
-- `scripts/build_stm32.py`
-- `scripts/test_stm32_host.py`
-- `scripts/train_adaptive_gait.sh`
-- `scripts/view_foothold_planner.sh`
-- `scripts/view_trained_policy.sh`
+실행 스크립트는 `scripts/`, 사용법과 규격은 [개발 문서 안내](README.md)에 있다.

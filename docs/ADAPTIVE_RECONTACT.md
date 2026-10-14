@@ -15,12 +15,12 @@ clearance는 높은 쪽 endpoint 위로 추가로 드는 높이다. 착지 Z 자
 따라 상승한다. 상한 18cm로 required+margin을 만족할 수 없으면 path 검사에서 거부한다.
 지형 gradient는 body posture baseline, 상승 높이는 apex timing baseline에도 사용한다.
 GT로 지형을 알아도 실제 발의 접촉 유지·재접촉 상태 기계는 별도로 동작해야 한다.
-GT 계산이나 residual 범위는 이번에 바꾸지 않았다.
+GT 계산과 residual 범위는 기존 설정을 유지한다.
 
 ## 수정 범위
 
-이번 수정은 MJX adaptive scheduler/controller와 curriculum이다. STM32 C 펌웨어는
-변경하지 않았다. 새 boundary recovery가 실기에 포팅·검증됐다고 주장하지 않는다.
+경계 재접촉 복구는 MJX adaptive scheduler/controller와 curriculum에 적용된다.
+STM32 C 펌웨어로의 포팅과 실물 시험은 별도 과제다.
 기존 18-D 경로 및 adaptive 24-D 입력/출력 차원은 유지한다. Scheduler 내부 상태는 늘었다.
 
 - phase 완료 이력이 있고 이동 명령이 활성인 상태에서, 다음 phase 대기 중 발 접촉이
@@ -53,20 +53,20 @@ best로 다음 재시도를 이어가며 cycle별 W&B score/영상 저장은 유
 크다. 예를 들어 평가 8개에서 70% 문턱을 넘으려면 6/8=75%가 필요하다. 아래는 16개를 쓴다.
 복구 한계 반복 등 제어기 문제는 재시도 횟수로 해결되지 않으므로 W&B 지표를 확인한다.
 
-## 사용자 실행 — 경사면부터 재개
+## 경사면부터 학습 재개
 
 아래는 source 9e8c1ab의 completion-reward checkpoint를 명시적으로 이전한다.
 `--migrate-recontact`는 검토된 controller/scheduler/env/metadata 파일 hash만 허용한다.
 과거 코드의 점수를 새 제어기 성능으로 사용하지 않고 새로 평가한다. 새 버전 checkpoint로
-재개할 때는 migration flag를 제거한다. 실제 학습·simulation·unit tests는 실행하지 않았다.
+재개할 때는 migration flag를 제거한다. 경계 복구가 보행 성능에 미치는 영향은 별도 실험이 필요하다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/train_adaptive_curriculum.sh \
   --profile teacher --perception teacher --start-index 1 \
   --run-name adaptive-gt-recontact-until70 \
-  --restore /home/huro/Hexapod-Robot-integration/mjx/runs/adaptive-curriculum/adaptive-gt-completion-resume-20260907-233419-411263/01_tripod-ramp8_try01/checkpoints/000000614400 \
+  --restore ./mjx/runs/adaptive-curriculum/adaptive-gt-completion-resume-20260907-233419-411263/01_tripod-ramp8_try01/checkpoints/000000614400 \
   --migrate-recontact \
   --timesteps-per-stage 800000 \
   --num-envs 512 --batch-size 128 --num-minibatches 4 \
@@ -78,6 +78,6 @@ bash scripts/train_adaptive_curriculum.sh \
   --wandb --wandb-mode online
 ```
 
-사용자용 단위 검사: `python -m unittest mjx.tests.test_adaptive_hybrid`.
+재접촉 단위 시험: `python -m unittest mjx.tests.test_adaptive_hybrid`.
 새 검사는 idle RF 미접촉 복구, raw 후보 정지, confirmed 안정 후 유효 계획으로만 launch,
 수직 목표/다른 발 고정, 시간 한계 HOLD를 포함한다. 동역학/실기 검증을 대신하지 않는다.

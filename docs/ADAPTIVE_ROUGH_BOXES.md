@@ -25,8 +25,8 @@ Replay는 계속 strict이며 이후 새 checkpoint는 새 소스 hash로 저장
 이전 내역은 새 metadata의 `explicit_migration`에 기록된다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/train_adaptive_curriculum.sh \
   --profile full --start-index 1 \
   --perception teacher --run-name adaptive-full-terrain-mid-boxes \
@@ -37,11 +37,11 @@ bash scripts/train_adaptive_curriculum.sh \
   --best-video-duration 12 --max-retries 2 \
   --wandb --wandb-mode online \
   --migrate-flat-boxes \
-  --restore /home/huro/Hexapod-Robot-integration/mjx/runs/adaptive-curriculum/adaptive-full-terrain-mid/00_tripod-flat_try01/checkpoints/000000307200
+  --restore ./mjx/runs/adaptive-curriculum/adaptive-full-terrain-mid/00_tripod-flat_try01/checkpoints/000000307200
 ```
 
 平지 학습은 다시 하지 않고 index 1인 rough25부터 시작한다. 실제 checkpoint 경로는
-사용자가 올린 로그 기준이다. 복원 실패 시 metadata를 덮어쓰지 말고 오류 내용을 확인한다.
+기록된 복원 오류 로그를 기준으로 한다. 복원 실패 시 metadata를 덮어쓰지 말고 오류 내용을 확인한다.
 cycle별 W&B score·영상·artifact 업로드를 유지한다.
 
 episode 800은 16초로 rough 목표(약 2.31m)를 통과하기에 짧다.
@@ -49,5 +49,4 @@ episode 800은 16초로 rough 목표(약 2.31m)를 통과하기에 짧다.
 rough Tripod만 할 경우 2000(40초) 등으로 줄일 수 있다.
 목표 도달/실패 시에는 일찍 끝나며, 이 길이가 험지 완주를 보장하지 않는다.
 
-이번 변경에서는 학습·시뮬레이션·렌더링·실기를 실행하지 않았다.
-32개 box의 충돌 계산 비용 및 실제 이동 성능은 사용자 검증 대상이다.
+32개 box의 충돌 계산 비용과 지형 이동 성능은 별도 측정이 필요하다.

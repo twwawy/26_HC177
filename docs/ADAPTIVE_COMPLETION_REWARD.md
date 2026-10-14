@@ -1,4 +1,4 @@
-# 완주 중심 보상과 비동기 사용자 실행
+# 완주 중심 보상과 학습 재개
 
 재접촉 수정 이후의 최신 추천은 [70% 통과까지 같은 지형 재시도](ADAPTIVE_RECONTACT.md)다.
 아래 advance는 이전 실행 설정이며 필요할 때만 명시적으로 선택한다.
@@ -29,8 +29,7 @@
   표시하지 않는다. 프로세스 crash나 checkpoint 누락은 정상적인 stage 미통과와 달라 중단한다.
 
 reward contract는 `adaptive_completion_outcome_v5`. 관측/network/action 크기는 동일하다.
-수치들은 최초 조정값이며 학습 성공을 확인한 값이 아니다. 코드 문법/source hash만 확인하고
-PPO, 시뮬레이션, renderer 및 unit test 실행은 사용자에게 맡긴다.
+수치들은 초기 조정값이다. 보상 효과는 학습 후 완주율과 실패 원인으로 평가한다.
 
 ## 기존 경사면 best에서 재개
 
@@ -40,12 +39,12 @@ PPO, 시뮬레이션, renderer 및 unit test 실행은 사용자에게 맡긴다
 new run과 새 evaluation으로 best를 다시 선택한다. flag는 첫 cycle에만 전달된다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/train_adaptive_curriculum.sh \
   --profile teacher --perception teacher --start-index 1 \
   --run-name adaptive-gt-completion-resume \
-  --restore /home/huro/Hexapod-Robot-integration/mjx/runs/adaptive-curriculum/adaptive-grid-v5-gt-teacher/01_tripod-ramp8_try01/checkpoints/000000614400 \
+  --restore ./mjx/runs/adaptive-curriculum/adaptive-grid-v5-gt-teacher/01_tripod-ramp8_try01/checkpoints/000000614400 \
   --migrate-completion-reward \
   --timesteps-per-stage 800000 \
   --num-envs 512 --batch-size 128 --num-minibatches 4 \
@@ -59,7 +58,7 @@ bash scripts/train_adaptive_curriculum.sh \
 경사면을 이번에 다시 시도하고, 최초 실행+재시도 1회 후 미통과여도 낮은 계단으로 간다.
 즉시 다음 지형부터 시작하려면 `--start-index 2`로 바꾼다. 새 reward의 checkpoint에서
 이어서 시작할 때는 `--migrate-completion-reward`를 빼고 해당 checkpoint를 restore한다.
-사용자가 기존 학습 프로세스를 별도로 실행 중이라면 그 프로세스의 현재 Python 모듈은
+기존 학습 프로세스가 실행 중이라면 그 프로세스의 현재 Python 모듈은
 자동 갱신되지 않는다. 새로운 명령에서만 이 변경을 적용한다.
 
 ## 확인할 지표

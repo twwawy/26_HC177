@@ -45,7 +45,7 @@
 
 [PNG 원본](figure_08_hexapod_comparison.png) · [MATLAB 편집 파일](figure_08_hexapod_comparison.fig) · [비교 수치 CSV](hexapod_comparison.csv) · [출처와 비교 조건](COMPARISON_SOURCES.md)
 
-사용자의 변경 요청에 따라 **현재 Classical Controller의 시뮬레이션 측정값과 대표 6족 로봇의 공개 문헌 수치**를 비교한다. Residual-RL 비교나 설계 구조도가 아니다.
+현재 Classical Controller의 시뮬레이션 측정값과 대표 6족 로봇의 공개 문헌 수치를 함께 정리한 그림이다. 모델과 시험 조건이 달라 직접적인 성능 비교에는 제한이 있다.
 
 권장 캡션:
 

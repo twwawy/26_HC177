@@ -7,7 +7,7 @@
 
 최근 로컬 `adaptive-flat-debug` / `adaptive-flat-fast` 학습 로그에는
 `termination/no_progress`가 주된 종료 사유로 기록되어 있었다.
-사용자가 본 특정 영상/가중치의 모든 실패를 동일 원인이라고 단정하지 않는다.
+영상이나 가중치마다 정지 원인은 다를 수 있다.
 
 `AdaptiveGaitEnv._candidates()`는 classical half-stance 끝점에 예상 몸체
 전진·회전까지 추가했다. 반면 실행기는 현재 몸체 좌표로 변환한 끝점을
@@ -24,15 +24,12 @@ terrain Z 조회, 후보 안전 검사, HOLD, no-progress 종료 조건은 유�
 - `policy_video.py`의 잘못된 들여쓰기와 reset 전 미정의 state/action 사용을 수정했다.
 - 학습용·공통 GIF 생성기는 같은 이름의 `.termination.json`에 실제 종료 사유,
   성공 여부, 실행 시간과 요청 시간을 남긴다.
-- `check_adaptive_rollout.py`는 사용자용 zero-action 진단 도구다. PPO를 실행하지
+- `check_adaptive_rollout.py`는 zero-action 진단 도구다. PPO를 실행하지
   않으며, 종료 사유와 완료한 phase 수를 JSON에 저장한다.
 
-## 이미 실행한 확인과 한계
+## 기록된 평지 실험
 
-사용자의 검증 위임 지시를 어기고 수정 중 CPU 시뮬레이션을 실행했다.
-사용자가 다시 지적한 뒤 시뮬레이션·학습·추가 테스트 실행을 중단했다.
-
-실행했던 조건: flat, oracle, Tripod, action=0, seed=0, 명령 0.08 m/s.
+실험 조건: flat, oracle, Tripod, action=0, seed=0, 명령 0.08 m/s.
 
 | 항목 | 수정 전 | nominal 수정 후 |
 |---|---|---|
@@ -49,13 +46,13 @@ terrain Z 조회, 후보 안전 검사, HOLD, no-progress 종료 조건은 유�
 몸체 이동·자세 응답의 영향을 받는다. 이 수정으로 험지의 world-locked 착지나
 전체 swept-path collision 검증까지 완료된 것은 아니다.
 
-## 사용자가 실행할 명령
+## 실행 명령
 
 먼저 가중치 없이 기본 보행을 확인한다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/view_foothold_planner.sh --controller adaptive --terrain flat --perception oracle --gait-mode tripod --speed 0.08 --seed 0
 ```
 
@@ -72,7 +69,7 @@ python mjx/check_adaptive_rollout.py --cpu --perception oracle --terrain-level 0
 `done=true`, `success=true`, 빈 `termination`이면 성공 종료다.
 `termination/no_progress`이면 HOLD/전진 정체, tilt/clearance 등은 물리 실패다.
 
-기본 보행을 확인한 뒤 새 출력 디렉터리로 학습한다. 아래 학습은 사용자가 실행한다.
+기본 보행을 확인한 뒤 새 출력 디렉터리로 학습한다. 학습 명령은 다음과 같다.
 
 ```bash
 bash scripts/train_adaptive_gait.sh --stage 1 --terrain-level 0 --perception teacher --action-profile flat_safe --output mjx/runs/adaptive-flat-nominal-fix
@@ -143,7 +140,6 @@ score가 갱신될 때마다 `cycle/best_score`, `cycle/best_step`이 즉시 기
 자동 호환 처리나 hash 우회는 추가하지 않았다. 이전 학습 결과는 보존하고,
 수정된 실행기를 기준으로 새 학습 결과와 비교한다.
 
-## 작업 범위
+## 적용 범위
 
-로컬에 있던 커리큘럼 및 학습 코드 변경은 보존했다. 이번 변경은 로컬 수정이며
-추가 commit/push는 수행하지 않았다. STM32 및 기존 18-D 제어기는 수정하지 않았다.
+이 문서의 수정 대상은 MJX 지형 적응 경로다. STM32 기본 보행과 기존 18-D 제어기는 별도 경로를 사용한다.

@@ -1,35 +1,37 @@
-# Adaptive integration 분석 및 결정
+# 지형 적응 보행 제어 설계 결정
 
-2026-09-07. main source: `9752c760002ac2dc7cc493ed634a881f87b7fd1e`.
-실제 base는 후속 URDF-only commit `de77791d6386309295be5c8d173a1f51eca99930`이다.
-두 revision 사이 STM32 변경은 없다. adaptive source는 `f9d80587ff086a1f3df51b81185e742094c109c9`.
-전체 merge 없이 main에서 `codex/adaptive-hybrid-rl-integration`을 만들었다.
+STM32 기본 보행 제어에 MJX의 지형 적응 계획을 연결하기 위한 설계다.
+2026-09-07 통합 기준 소스는 아래와 같다.
 
-## 변경 전 분석
+| 구분 | 소스 버전 |
+|---|---|
+| STM32·하드웨어 기준 | `de77791d6386309295be5c8d173a1f51eca99930` |
+| MJX 지형 적응 제어 | `f9d80587ff086a1f3df51b81185e742094c109c9` |
 
-- main RL은 session / observation history 32 / age 60 ms / command timeout 100 ms /
-  wrap-aware sequence / plan ID+mask 검증을 갖췄다. Workspace의 9-point preflight 후
-  FootTrajectory pending→active latch가 있다. 입력 RobotRlAction은 absolute posture와 dx/dy/dz/dh다.
-- main manual은 phase 1초, cubic XY+parabolic Z+radial 7 cm, swing 20 cm다.
-  Wave 0,5,1,3,2,4; speed .2; stance 5 phase; 첫 순회 half stance를 사용한다.
-  Early .5, Late .12 m/s·inward .096 m/s·10 cm 한계, support recovery와 전원 안전이 우선이다.
-- MJX adaptive v3는 action24, actor4410/critic4725. wide25 후보를 local projection에도
-  재사용해서 X를 decoder에서 늘려도 실제 ±6 cm endpoint가 없다. Tripod .5초도 main과 다르다.
-- correction body_offset는 사용자 속도의 적분 translation이다. adaptive body height는
-  phase별 absolute offset이므로 별도 state와 rate/workspace gate가 필요하다.
-- main SPI v2는 raw 24-byte payload 보관까지이며 RL API와 연결되지 않았다.
-  Jetson 폴더에는 실행 코드가 없다. ISR은 완료 flag만 기록해야 한다.
+## 기존 제어 경로
 
-## 통합 결정
+- STM32 RL 입력은 세션, 관측 이력 32개, 관측 유효 시간 60 ms, 명령 타임아웃 100 ms,
+  순환 시퀀스와 계획 ID·다리 마스크를 검사한다. 작업영역의 9개 지점을 확인한 뒤
+  발 궤적의 대기 계획을 실행 계획으로 전환한다.
+- 수동 보행은 1초 위상, 3차 수평 보간과 포물선 높이, 방사 방향 7 cm, 들림 높이 20 cm를 사용한다.
+  Wave 순서는 `0, 5, 1, 3, 2, 4`이며 속도 배율은 0.2다.
+- 기존 MJX v3는 24차원 정책을 사용하지만 넓은 착지 후보를 잔차 투영에도 재사용해
+  X축 ±6 cm의 정책 요청이 실제 착지점까지 반영되지 않는 문제가 있었다.
+- 수동 자세 보정의 `body_offset`은 조종 속도를 적분한 이동량이다. 지형 적응 정책의
+  몸체 높이는 위상별 절대 오프셋이므로 별도 상태와 변화율·작업영역 제한이 필요하다.
+- 기존 SPI 경로는 원시 명령 저장까지 처리하며 RL 실행 API 연결이 필요했다.
 
-1. main의 HW/STM32를 유지하고 adaptive root mjx subtree(legacy replay 의존성·가중치 포함),
-   viewer/train wrapper 3개와 관련 docs 4개만 선택적으로 가져온다. SW/mjx·다른 firmware는 가져오지 않는다.
-2. PolicyAction24 v4와 final AdaptiveExecutionPlan을 분리한다. geometry가 Z를 소유한다.
-3. wide ±8 cm grid와 local X ±6/Y ±4 cm grid를 분리한다. map 5 cm는 유지한다.
-4. adaptive timing/trajectory 상수를 양쪽에 명시하고 golden tests로 drift를 검출한다.
-5. final target frame, body offset, gait negotiation, freshness/latch를 내부 API에서 먼저 고정한다.
-6. SPI는 마지막에 128-byte explicit little-endian fixed-point/CRC로 연결한다.
-7. manual/legacy trajectory와 안전 상태기는 유지한다. 새 기능은 adaptive 실행에서만 선택한다.
+## 설계 결정
 
-빌드·단위 계약 확인은 최소 범위로 진행한다. Stage0 viewer, PPO, 보드 플래시와 물리 동작은
-사용자 검증이며 코드 구현과 구분한다. 전체 변경 파일과 검증 결과는 최종 통합 보고서에 기록한다.
+1. 하드웨어와 STM32 기본 보행·안전 상태기를 유지하고 지형 적응 실행 경로를 추가한다.
+2. 정책 출력 `PolicyAction24`와 최종 실행 계획 `AdaptiveExecutionPlan`을 분리한다.
+   지형 높이는 기하 계산에서 정하고 STM32에는 최종 목표 좌표를 전달한다.
+3. 넓은 후보 검색과 잔차 투영 후보를 분리한다. 검색 범위는 ±8 cm,
+   투영 범위는 X ±6 cm·Y ±4 cm, 지도 해상도는 5 cm다.
+4. MJX와 STM32에서 궤적과 타이밍 상수를 공유하고, 같은 입력의 결과를 계약 시험으로 비교한다.
+5. 좌표계, 몸체 오프셋, 보행 방식, 계획 유효 시간과 위상 경계 전환을 먼저 정의한다.
+6. SPI는 128바이트 프레임에 리틀엔디언 고정소수점과 CRC를 사용한다.
+7. 수동 조종과 기존 18차원 정책 재생은 각각의 제어 경로를 유지한다.
+
+실행 계약과 구현 범위는 [통합 문서](ADAPTIVE_INTEGRATION_V4.md),
+파일별 역할은 [모듈 안내](ADAPTIVE_INTEGRATION_FILES.md)에 정리했다.

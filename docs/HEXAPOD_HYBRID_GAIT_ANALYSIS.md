@@ -1,10 +1,9 @@
 > 이 문서는 이전 개발 단계의 설계/사용 이력을 포함합니다. 현재 v4 contract, timing, 실행 경로는 [통합 문서](ADAPTIVE_INTEGRATION_V4.md)를 따릅니다.
 
-# 구현 전 분석: LiDAR foothold / Tripod–Wave supervisor
+# LiDAR 착지점과 Tripod–Wave 전환 설계
 
-기준: 작업 브랜치 `3c8f528`, 원격 main `90a8950` (2026-09-06 fetch).
-분석을 사용자에게 먼저 보고한 뒤 구현한다. 이전 요청으로 진행 중이던 25개 후보/oracle 변경은
-미커밋 초안이었으며 실행 검증하지 않았다. GUI/보행/PPO 검증은 사용자에게 맡긴다.
+2026-09-06 소스 `3c8f528`와 `90a8950`을 기준으로 한 설계 기록이다.
+현재 구현 계약은 [통합 문서](ADAPTIVE_INTEGRATION_V4.md)를 참고한다.
 
 ## 기존 데이터 흐름과 gate
 
@@ -42,7 +41,7 @@ normal, support margin, gait mode, maximum feasible stride는 없다.
 - Wave에서는 tripod 공통 Z 복구 해제.
 - Tripod 입력은 두 위상 묶음, Wave는 매 발 갱신. 안전 supervisor는 무효한 다음 위상보다 HOLD를 우선한다.
 
-MJX는 충돌 접촉을 사용하므로 하드웨어 FSR sampling/threshold를 재현했다고 주장하지 않는다.
+MJX는 충돌 접촉을 사용한다. 하드웨어 FSR의 샘플링과 임계값은 별도 모델이 필요하다.
 기존 MJX Tripod .5초와 main 1초는 설정으로 분리한다. main의 swing 높이 .2 m까지 그대로
 옮기지 않고 기존 MJX 기본 .06 m와 geometry-required clearance를 쓴다.
 
@@ -60,7 +59,5 @@ MJX는 충돌 접촉을 사용하므로 하드웨어 FSR sampling/threshold를 �
 수정 대상은 adaptive controller/env/perception/policy/viewer/train과 신규 estimator/feasibility/
 supervisor/scheduler 모듈이다. firmware 기본 모듈 및 stage31 replay는 보존한다.
 새 adaptive 계약은 버전/차원을 바꾸고 이전 adaptive checkpoint를 거부한다.
-최종 성공 조건은 사용자 GUI/보행 검증으로 판정하며 코드 작성만으로 충족됐다고 표시하지 않는다.
-
-검증은 문법·CLI·정적 정합성으로 제한한다. 단위/회귀 테스트와 실행 명령은 제공하되 이 작업에서
-장시간 JIT·동역학·학습을 자동 실행하지 않는다.
+성공 조건은 GUI의 계획 표시, 동역학 보행, 학습 평가에서 각각 판정한다.
+정적 계약 검사만으로 지형 통과 성능을 판단할 수 없다.

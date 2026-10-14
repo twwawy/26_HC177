@@ -4,7 +4,7 @@
 
 409600-step 영상/manifest는 생성됐다. W&B 내부 로그에는 이후에도 HTTP 200 응답이 있었다.
 따라서 마지막 `Adding directory... Done`만으로 업로드 교착을 확정할 수 없다.
-부모가 `process.stdout`을 기다리던 KeyboardInterrupt는 사용자의 Ctrl+C 중단이다.
+`process.stdout` 대기 중의 KeyboardInterrupt는 Ctrl+C로 프로세스를 중단한 기록이다.
 PPO 연산인지 업로드 처리인지 그 시점의 child stack은 확보하지 않았으므로 정확한 병목은 미확정이다.
 
 실제 확인한 중복 작업을 줄였다.
@@ -16,7 +16,7 @@ PPO 연산인지 업로드 처리인지 그 시점의 child stack은 확보하�
 - Ctrl+C 시 부모가 child에 terminate하고 10초 안에 종료하지 않으면 kill하여 방치하지 않는다.
 
 새 best 영상 생성은 여전히 동기식이다. 렌더링 중 PPO는 기다린다.
-백그라운드 GPU renderer나 처리량 개선을 검증했다고 주장하지 않는다.
+백그라운드 GPU renderer는 없으며 처리량은 별도 측정이 필요하다.
 
 ## 발 높이
 
@@ -24,13 +24,13 @@ PPO 연산인지 업로드 처리인지 그 시점의 child stack은 확보하�
 geometry baseline 및 최소 clearance에 2cm를 더한다. 평지에는 추가하지 않는다.
 RL residual 범위, body pitch/height, 보폭 설정은 유지한다.
 clearance 18cm 상한과 IK/path 검사는 유지하므로 도달 불가 궤적을 강제하지 않는다.
-추가 높이가 IK 여유를 줄여 후보를 탈락시킬 수도 있다. 실제 개선 여부는 사용자 검증 대상이다.
+추가 높이가 IK 여유를 줄여 후보를 탈락시킬 수도 있다. 보행 개선 여부는 별도 실험이 필요하다.
 CLI 범위는 0~4cm이며 기본값은 0이다. 설정은 checkpoint config에 기록된다.
 
 ## 중단된 v6 best로 재개
 
 ```bash
-bash /home/huro/Hexapod-Robot-integration/scripts/resume_stair5_v6_clearance.sh
+bash ./scripts/resume_stair5_v6_clearance.sh
 ```
 
 `stair5-path-v6-warmstart/02_tripod-stair5_try00/checkpoints/000000204800`을 사용한다.
@@ -38,8 +38,7 @@ bash /home/huro/Hexapod-Robot-integration/scripts/resume_stair5_v6_clearance.sh
 명시적으로 허용한다. v6→v6는 입력 차원/가중치 변환 없이 이어받는다. Optimizer는 새로 시작한다.
 기존 d0370b3 v5→v6 명시적 이전도 유지한다. 임의 source hash bypass는 허용하지 않는다.
 
-학습·시뮬레이션·영상 렌더링·변환 실행 검증은 하지 않았다. AST/shell 문법 및
-기존 checkpoint의 source hash 읽기만 확인했다.
+추가 높이의 효과는 학습·보행 결과로 평가한다. 기존 체크포인트의 소스 해시 검사는 유지한다.
 
 재개 스크립트는 평가 9회·현재 정책 영상 20초·baseline 비교 0으로 설정한다. 학습량 800000과 episode 8000은 유지한다.
 

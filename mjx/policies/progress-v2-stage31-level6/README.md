@@ -7,8 +7,8 @@ W&B 로그나 GIF를 정책으로 사용하는 것이 아니라, 저장된 가�
 **착지점 뷰어 안에서 이 정책을 쓰는 기본 실행 명령:**
 
 ```bash
-cd /home/huro/Hexapod-Robot
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/view_foothold_planner.sh --terrain steps
 ```
 
@@ -20,11 +20,11 @@ bash scripts/view_foothold_planner.sh --terrain steps
 아래는 별도 `view_trained_policy.sh`의 run 지형 재현 모드 설명이다.
 
 ```bash
-cd /home/huro/Hexapod-Robot
+cd Hexapod-Robot
 bash scripts/view_trained_policy.sh
 ```
 
-가상환경은 `/home/huro/.venvs/hexapod-mjx`이다. 스크립트가 직접 사용하므로 activate는
+가상환경은 `$HOME/.venvs/hexapod-mjx`이다. 스크립트가 직접 사용하므로 activate는
 선택 사항이다. 기존 JAX/MJX/Brax 학습 환경이 필요하며, 화면 표시만 가능한 MuJoCo 환경으로는
 실행할 수 없다. 첫 실행은 JAX 컴파일로 시간이 걸릴 수 있다.
 
@@ -32,7 +32,7 @@ bash scripts/view_trained_policy.sh
 |---|---|
 | 선택 기준 | 해당 run의 `monitor/level_best_checkpoint.json` |
 | checkpoint step | **1,703,936** (`000001703936`) |
-| 기록된 평가 점수 | 171.364044; 저장된 점수이며 이번에 재평가하지 않음 |
+| 기록된 평가 점수 | 171.364044; 원본 run의 평가 기록 |
 | W&B project / run ID | `hexapod-real` / `9w1fzji2` |
 | 입력 | 146-D observation + 저장된 정규화 통계 |
 | 출력 | 18-D adaptive swing residual v3 |
@@ -78,7 +78,7 @@ bash scripts/view_trained_policy.sh --seed 40
 
 ## 코드와 기록의 차이
 
-현재 작업 폴더의 v4 정책 계약을 이 checkpoint에 적용하지 않는다. 기록된 커밋의 코드와
+현재 v4 정책 계약을 이 checkpoint에 적용하지 않는다. 기록된 커밋의 코드와
 URDF를 `mjx/generated/trained_policy/source-0805164a5db4/`에 추출해 별도로 import한다.
 원본 커밋의 level6 계단은 10 cm지만 run 기록은 6.5 cm이므로, 저장된 지형 치수로
 해당 level 정의를 대체한다. 나머지 설정은 `environment.json`에서 읽는다.
@@ -87,8 +87,7 @@ URDF를 `mjx/generated/trained_policy/source-0805164a5db4/`에 추출해 별도�
 reward 코드에도 차이가 있어, 이 실행은 **가중치와 기록 기반 환경의 복원**이다.
 W&B 영상·점수·종료 시점의 완전한 재현을 확인한 것은 아니다.
 
-현재 패키지 파일의 해시 확인과 소스 추출까지만 수행했다. 사용자 요청에 따라 가중치 로딩,
-정책 추론, GUI 실행, 동역학 보행 검증은 수행하지 않았다.
+패키지의 해시와 소스 추출 기록은 보관돼 있다. 정책 추론과 보행 성능은 실행 환경에서 별도로 평가해야 한다.
 
 `manifest.json`에는 출처·checkpoint·SHA-256을 기록했다. 실행 시의 소스 경로·seed·환경은
 `mjx/generated/trained_policy/replay_manifest.json`에 기록한다. 이 패키지에는 새 학습이나

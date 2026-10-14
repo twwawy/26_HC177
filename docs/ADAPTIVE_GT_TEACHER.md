@@ -9,8 +9,8 @@ Terrain 기본 yaw 명령은 0이고 RC의 회전·후진·정지 sampler는 사
 RC checkpoint는 task가 다르므로 아래 첫 실행에는 restore하지 않는다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 
 bash scripts/train_adaptive_curriculum.sh \
   --profile hybrid \
@@ -30,7 +30,6 @@ bash scripts/train_adaptive_curriculum.sh \
 완주율 70% 미달이면 무제한 retry하며 실패한 지형을 자동으로 넘기지 않는다.
 모든 지형 Hybrid 순서: flat → ramp8 → stair5 → stair8 → rough25 → ramp15 → stair10 → rough50.
 이후 stair15/stair20으로 진행한다. 모든 stage의 gait는 Hybrid(stage 3)다. GT는 actor grid와 planner에 사용한다.
-학습·시뮬레이션은 사용자가 실행한다.
 
 ## 기본 보행과 정책 비교
 
@@ -42,7 +41,7 @@ bash scripts/train_adaptive_curriculum.sh \
 
 이 비교는 학습 업데이트에 사용하지 않는다. PPO reward/best 선정, promotion의
 `eval/episode_terrain_success`를 변경하지 않는다. 영상은 이전처럼 cycle best policy를
-별도 영상 seed로 재생하며, paired 비교 seed의 영상이라고 주장하지 않는다.
+별도 영상 seed로 재생하므로 paired 비교와 영상 재생의 seed는 다르다.
 전체 curriculum 누적 best 영상은 추가하지 않는다.
 
 W&B 확인 항목:
@@ -62,4 +61,4 @@ best 영상 생성은 계속 시도한다. 정상 결과 파일은 `monitor/base
 기존 profile 기본값은 0이다. 비교에는 추가 JIT/rollout 비용이 들며 처리량은 측정하지 않았다.
 
 GT teacher가 안정적으로 개선된 다음 LiDAR student 증류와 PPO fine-tuning을 진행한다.
-이번 변경에는 자동 teacher-student 증류를 구현하지 않았다. 단순 입력 교체를 증류로 보지 않는다.
+자동 teacher-student 증류는 아직 구현 대상이다. 입력 교체와 정책 증류는 별개의 과정이다.

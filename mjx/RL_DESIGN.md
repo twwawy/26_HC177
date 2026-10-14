@@ -164,8 +164,8 @@ level당 최대 2회, Level 4~16(15° 경사부터 최종 계단)는 최대 4회
 ## 실행
 
 ```bash
-cd /home/huro/Hexapod-Robot
-PY=/home/huro/.venvs/hexapod-mjx/bin/python
+cd Hexapod-Robot
+PY="$HOME/.venvs/hexapod-mjx/bin/python"
 
 # 환경/계약만 검증
 $PY mjx/train_rough_terrain.py --terrain-level 1 --smoke
@@ -222,7 +222,7 @@ episode evaluation과 렌더링을 건너뛸 수 있다. Curriculum 실행에는
 현재 v4는 residual scale이 바뀌므로 기존 v3 actor를 직접 이어받지 않고 새 run을 시작한다.
 
 ```bash
-/home/huro/bin/hexapod-mjx-python mjx/train_competence_curriculum.py \
+"$HOME/.venvs/hexapod-mjx/bin/python" mjx/train_competence_curriculum.py \
   --run-name firmware-terrain-adaptive-swing \
   --seed 8 --flat-baseline-timesteps 262144 \
   --start-level 1 --max-level 16 \
@@ -246,9 +246,9 @@ Cartesian v2 teacher는 의미가 호환되는 다리별 X/Y 12개 action만 지
 투영하며, teacher checkpoint를 일반 `--init-checkpoint` gate로 복원하지 않는다.
 
 ```bash
-/home/huro/bin/hexapod-mjx-python mjx/train_competence_curriculum.py \
+"$HOME/.venvs/hexapod-mjx/bin/python" mjx/train_competence_curriculum.py \
   --run-name firmware-terrain-command5-teacher-student-v1 \
-  --run-root /home/huro/Hexapod-Robot/mjx/runs \
+  --run-root ./mjx/runs \
   --seed 8 \
   --flat-baseline-timesteps 262144 \
   --start-level 1 --max-level 16 \
@@ -277,7 +277,7 @@ history에 기록된다.
 
 ```bash
 $PY -m pip install -r mjx/requirements-train.txt
-/home/huro/.venvs/hexapod-mjx/bin/wandb login
+"$HOME/.venvs/hexapod-mjx/bin/wandb" login
 ```
 
 각 실행은 `mjx/runs/terrain/<name>_<timestamp>_seed<seed>/` 아래에 독립 저장된다.

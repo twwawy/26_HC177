@@ -1,10 +1,9 @@
-> 통합 브랜치의 실행/SPI 계약과 검증 범위는 [v4 통합 문서](ADAPTIVE_INTEGRATION_V4.md)가 기준입니다.
+> 지형 적응 제어의 실행/SPI 계약과 검증 범위는 [v4 통합 문서](ADAPTIVE_INTEGRATION_V4.md)가 기준입니다.
 
 # MJX hybrid residual 보행 사용 가이드
 
-업데이트: 2026-09-06. 브랜치 `codex/cartesian-residual-rl`.
-구현과 정적 확인까지 진행했다. GUI 보행, JIT rollout, PPO, 아래 테스트의 실행 검증은 사용자에게 맡겼다.
-새 24-D 학습 가중치는 없다. 계단 등판이나 안전한 gait 전환이 검증됐다는 뜻은 아니다.
+2026-09-06의 보행·학습 구성에 대한 사용법이다. 보관된 18-D 정책과 24-D 정책은 호환되지 않는다.
+현재 계약과 변경된 관측 구조는 [통합 문서](ADAPTIVE_INTEGRATION_V4.md)와 [높이 지도 CNN](ADAPTIVE_ELEVATION_GRID_V5.md)을 참고한다.
 
 ## 경로와 실행
 
@@ -22,8 +21,8 @@ feasible foothold를 처음 얻을 때까지 stride 0.5 classical Tripod가 동�
 이를 끄고 UNKNOWN→HOLD만 확인하려면 `--no-bootstrap-classical`을 추가한다.
 
 ```bash
-cd /home/huro/Hexapod-Robot
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 
 # Stage 0: RL 없이 GT 100% known으로 planner/controller 분리 확인
 bash scripts/view_foothold_planner.sh --controller adaptive --terrain flat --perception oracle
@@ -189,9 +188,9 @@ reference error는 양쪽 reference가 있는 다리만 비교한다(`oracle_com
 map MAE도 관측 cell만 비교한다(`map_compared_count`). 분모 0 지표를 성능 성공으로 해석하지 않는다.
 LiDAR 스캔 미실행인 oracle 화면의 map MAE는 n/a다. 이 지표들은 현재 sample 기반 oracle 기준이며 실제 접촉 성공률은 별도 확인해야 한다.
 
-## 사용자 확인 후 학습
+## Stage 0 이후 학습
 
-Stage 0에서 planner가 실패하면 PPO를 시작하지 않는다. 학습은 자동 실행하지 않았다.
+Stage 0에서 planner가 실패하면 착지 후보·작업영역·관측 문제를 먼저 해결한 뒤 PPO를 시작한다.
 
 ```bash
 # Stage 1: Tripod only / flat
@@ -227,7 +226,7 @@ Wave cost 0.005/s, mode switch cost 0.01로 안전 penalty보다 작게 둔다.
 불필요한 apex는 기존 swing-height cost, body tilt는 자세 목표 오차와 residual cost로 억제한다.
 별도 learned gait selector는 구현하지 않았다.
 
-추가한 단위 테스트는 사용자가 필요할 때 실행한다. 에이전트가 실행하지 않았다.
+제어 계약의 단위 시험 명령은 다음과 같다.
 
 ```bash
 python -m unittest discover -s mjx/tests -p test_adaptive_hybrid.py
@@ -236,4 +235,4 @@ python -m unittest discover -s mjx/tests -p test_firmware_mjx_controller.py
 ```
 
 현재 확인 범위는 문법/CLI/정적 계약뿐이다. 전체 형상 collision, 센서 사각지대 대응,
-동적 support 안정성, JIT/batch 메모리, 실제 등판과 sim-to-sim은 사용자 검증 후 이어갈 항목이다.
+동적 지지 안정성, JIT/batch 메모리, 실제 등판과 sim-to-sim은 별도의 실험 대상이다.

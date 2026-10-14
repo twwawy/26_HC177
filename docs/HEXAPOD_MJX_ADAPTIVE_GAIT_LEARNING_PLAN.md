@@ -37,7 +37,7 @@ Wave는 관측된 Tripod normal/short 실패 뒤에만 선택하고 전환은 al
 
 ## 학습 순서
 
-| 단계 | 목적 | 다음 단계 전 사용자 확인 |
+| 단계 | 목적 | 다음 단계 진입 조건 |
 |---|---|---|
 | 0 | policy 없이 oracle vs LiDAR planner | map MAE, safe recall, false-safe, unknown, edge, 착지 오차 |
 | 1 | Tripod only, flat → ramp → 작은 계단 | action 0 baseline과 residual 개선, 잔발/높이/자세 |

@@ -1,15 +1,12 @@
 # STM32–MJX adaptive hybrid 통합 v4
 
-## 기준과 작업 범위
+## 구성과 소스 기준
 
-브랜치: `codex/adaptive-hybrid-rl-integration`.
-작업 폴더: `/home/huro/Hexapod-Robot-integration`.
 main base: `de77791d6386309295be5c8d173a1f51eca99930`.
-요청한 `9752c760002ac2dc7cc493ed634a881f87b7fd1e` 이후 main 변경은 URDF/mesh이며 STM32는 같다.
+기준 버전 직전의 `9752c760002ac2dc7cc493ed634a881f87b7fd1e`와 STM32 코드는 같으며, URDF와 메시만 변경됐다.
 adaptive source: `f9d80587ff086a1f3df51b81185e742094c109c9`.
-full merge 없이 main에서 시작해 root `mjx/`, 실행 wrapper 3개, 관련 문서 4개를 선택적으로 가져왔다.
-HW, 기존 SW/STM32, SW/mjx 및 다른 시스템은 main을 기반으로 한다.
-[수정 전 분석](ADAPTIVE_INTEGRATION_ANALYSIS.md), [전체 파일 목록](ADAPTIVE_INTEGRATION_FILES.md).
+STM32 기본 보행 제어에 루트 `mjx/`의 지형 적응 제어와 Jetson 실행 계획 경로를 연결한다.
+[설계 결정](ADAPTIVE_INTEGRATION_ANALYSIS.md), [관련 모듈](ADAPTIVE_INTEGRATION_FILES.md).
 
 ## 책임 분리
 
@@ -60,7 +57,7 @@ REWARD_CONTRACT=`adaptive_hybrid_efficient_progress_v4`.
 v3 및 이전 adaptive checkpoint는 contract/shape mismatch로 명시적으로 거절한다.
 Stage31 18-D는 기존 controller/viewer 경로로 보존했다. v4로 자동 변환하지 않는다.
 metadata에는 축별 XY limit, local offsets, timing, source SHA256 및 observation 크기를 저장한다.
-현재 v4 학습 가중치는 만들지 않았다.
+보관된 Stage31 가중치는 18차원 정책용이며 이 24차원 계약에 적용할 수 없다.
 
 ## Wide search와 local residual
 
@@ -160,23 +157,22 @@ Map timestamp와 now는 같은 monotonic clock을 사용한다.
 
 **Live Livox/odom 수집, 시간 동기화, SPI master/DRDY 이벤트 루프는 배치 환경 연결 작업으로 남아 있다.**
 Nonzero policy 사용 시 완전한4434-D actor vector를 caller가 제공해야 한다. 현재 SPI 관측만으로
-odom velocity, slip/history 등을 임의로0으로 채우지 않는다. 따라서 지금은 보드에 바로 연결해
-학습 policy를 운용하는 완성된 Jetson 서비스라고 주장하지 않는다.
+odom velocity와 slip/history 등은 실제 상태 추정값으로 제공해야 한다.
+현재 경로를 실물에서 사용하려면 센서 수집과 SPI 운용을 연결해야 한다.
 
-## 최소 확인 결과와 사용자 확인 범위
+## 통합 당시 시험 기록과 남은 과제
 
 실행: 기존 MJX hybrid9 + v4 5 = **14 tests PASS**.
 새 검사는 실제 local geometry endpoint 사용, Z ownership, Python/C32개 golden trajectory,
 C SPI 디코딩/CRC/중복/timeout, baseline timing 및 boundary duration/gait transition을 포함한다.
 STM32 native portable11개 **PASS**: calibration conversion, user command, kinematics, controller,
 workspace, gait, mode transition, safety, communication, RL input, RL stop.
-핵심 C module와 app/SPI는 native syntax 검사 통과. Python syntax 검사 및 diff whitespace 검사 통과.
+핵심 C 모듈과 app/SPI의 native 문법 검사, Python 문법 검사 통과 기록이 있다.
 
 Native compiler는 기존 controller/mode-transition test의 array-size 추론 warning을 출력했다.
-CUDA 장치가 없는 sandbox에서 JAX CUDA plugin 초기화 경고가 있었지만 CPU14개 검사는 통과했다.
-Native HAL I/O stub은 호출되면 abort하므로 board 동작을 성공으로 위장하지 않는다.
-ARM ELF build, 실제 DMA/DRDY, 전체 viewer rollout, Stage0 metric, PPO, 실제 로봇은 실행하지 않았다.
-새 portable ARM build script는 추가한 C source도 포함하며 **미실행**이다.
+CPU 환경의 14개 검사 기록이며, HAL I/O stub은 호출 시 중단한다.
+이 기록에는 ARM ELF 빌드, 실제 DMA/DRDY, 전체 뷰어 rollout, Stage 0 지표, PPO와 실물 보행이 포함되지 않는다.
+ARM 빌드 스크립트는 지형 적응 C 소스를 포함한다.
 
 남은 위험: foot-centre/실제 발 접촉점·servo model 보정, phase-entry frame과 움직이는 몸체의 오차,
 posture PI/필터 및 raw-touchdown 취소 후 재개 궤적의 sim/hardware 차이, fixed-sample path 검사 사이 충돌,
@@ -185,11 +181,11 @@ posture PI/필터 및 raw-touchdown 취소 후 재개 궤적의 sim/hardware 차
 현재 height map 누적 max/min은 동적 지형 및 odom drift에 대한 별도 평가가 필요하다.
 이 결과는 계단 등판 성공·학습 성공·실기 검증 완료를 의미하지 않는다.
 
-## 사용자 실행 순서
+## 실행 순서
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 
 # 1. Stage 0: 반드시 가중치 없이 확인
 bash scripts/view_foothold_planner.sh --controller adaptive --terrain flat --perception oracle

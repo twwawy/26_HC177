@@ -1,5 +1,5 @@
 > 현재 권장: **v6 수정 + 기존 계단 가중치**는
-> `bash /home/huro/Hexapod-Robot-integration/scripts/resume_stair5_path_v6.sh`를 사용한다.
+> `bash ./scripts/resume_stair5_path_v6.sh`를 사용한다.
 > 아래의 v5 전용 재개/이전 미지원 설명은 이전 상태다. `--migrate-path-v6`가
 > d0370b3의 terrain v5 source 전체 hash를 확인한 뒤 명시적으로 이전한다.
 > 이전 가중치의 원본 파일은 변경하지 않는다. 실행/학습 검증은 아직 하지 않았다.
@@ -77,18 +77,18 @@ Brax episode 누적값은 순간 거리/비율과 구분해야 한다. 특히 �
 최소 margin으로 읽지 않는다. 정확한 후보 값은 viewer 저장 plan을 사용한다.
 기존 완주 보상·안전/효율 비용·cycle별 영상 방식은 유지한다.
 
-## 한계 및 사용자 검사
+## 한계와 관련 시험
 
 발끝 구 footprint의 이산 샘플 검사다. 다리 링크 전체 충돌, 샘플 사이 충돌,
 지도 오차 및 실제 접촉을 완전히 보장하지 않는다. 네 개 궤적 검사로 JIT/step 비용이 늘며
-실제 처리량은 측정하지 않았다. STM32 궤적식 및 하드웨어 코드는 이번 변경에서 수정하지 않았다.
+실제 처리량은 별도 측정이 필요하다. 이 경로 보정은 MJX에 적용되며 STM32 궤적식과 하드웨어 코드는 유지한다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 python -m unittest mjx.tests.test_path_bottleneck mjx.tests.test_adaptive_hybrid
 ```
 
-이 검사는 작성만 했고 실행하지 않았다. 문법 AST 및 diff만 확인했다.
-학습·시뮬레이션·보드 검증은 사용자가 수행한다. 시작 명령은 README를 사용하되
+위 명령은 경로 제한의 단위 시험이며 학습·실물 보행 평가는 별도다. 새 학습을 시작할 때는
+[GT 학습 명령](ADAPTIVE_GT_TEACHER.md)을 사용하되
 새 이름 `--run-name forward-gt-path-v6`로 실행하고 `--restore`를 넣지 않는다.

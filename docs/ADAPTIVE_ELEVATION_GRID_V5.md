@@ -8,13 +8,11 @@ Brax PPO는 관측 크기를 `{'state': (7890,), ...}`로 전달하지만 초기
 변경하지 않았다. 해당 오류는 네트워크 초기화 단계에서 발생했으므로 그 실패 run에는
 복원할 학습 checkpoint가 없다. 아래 학습 명령에서 run-name만
 `adaptive-grid-v5-lidar-mid-shapefix`로 변경하고 restore 없이 다시 실행한다.
-회귀 테스트는 추가했으며 실행은 사용자에게 맡긴다.
+관련 회귀 시험 코드는 `mjx/tests/test_adaptive_grid.py`에 있다.
 
-## 구현 범위와 실행 상태
+## 관측과 가중치 호환성
 
-`codex/adaptive-hybrid-rl-integration`에서 수정했다. 이번 변경의 simulation,
-PPO, unit test, hardware 실행은 모두 사용자에게 맡긴다. 보행 성공을 확인한 버전이라는
-의미가 아니다. 기존 학습 프로세스를 시작하거나 종료하지 않는다.
+이 문서는 관측·네트워크 구조를 설명한다. 지형별 보행 성능은 별도의 학습과 실험 기록이 필요하다.
 
 물리적 action은 `adaptive_hybrid_geometry_residual_24_v4`를 유지한다.
 관측은 `adaptive_hybrid_elevation_grid24x24x6_v5`, network는
@@ -55,7 +53,6 @@ grid의 물리적 채널 scaling은 유지하고 기존 vector는 PPO running no
 normalizer 저장 형식은 전체 observation을 유지하므로 메모리/처리량은 실측이 필요하다.
 
 Viewer의 M 지도 표시는 점 대신 5 cm 반투명 사각 셀로 그린다.
-이 시각화 변경 때문에 viewer를 자동 실행하지 않는다.
 
 ## 불필요한 정지 수정
 
@@ -106,14 +103,14 @@ episode 합산 값은 아래 이름 앞에 `eval/episode_`가 붙는다. 각 tic
 확인한다. reward 상승만으로 지형 적응 성공이라고 판정하지 않는다.
 3초 no-progress watchdog은 유지했다. 정지 종료를 늦춰 성공처럼 보이게 하지 않는다.
 
-## 사용자 실행 명령
+## 학습 실행
 
 새 network이므로 **restore 없이 새 run**으로 시작한다. 아래 명령은 GUI를 열지 않으며,
 기존처럼 cycle별 best 영상과 score를 W&B로 보낸다. 전체 best 영상 추가 저장은 하지 않는다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/train_adaptive_curriculum.sh \
   --profile full --perception lidar \
   --run-name adaptive-grid-v5-lidar-mid \
@@ -127,13 +124,13 @@ bash scripts/train_adaptive_curriculum.sh \
 
 `advance`는 실패한 stage도 표시하고 다음 지형을 시도한다. 통과를 의미하지 않는다.
 통과한 stage만 진행하려면 `--on-stage-failure stop`을 사용한다.
-메모리가 부족하면 `--num-envs 256`으로 낮춘다. 이번 변경의 GPU 사용량/속도는 측정하지 않았다.
+메모리가 부족하면 `--num-envs 256`으로 낮춘다. GPU 메모리와 학습 속도는 실행 환경에 따라 측정이 필요하다.
 
-사용자용 unit checks (rollout/PPO 없음):
+관측·네트워크 단위 시험 명령:
 
 ```bash
 python -m unittest mjx.tests.test_adaptive_grid mjx.tests.test_adaptive_hybrid mjx.tests.test_adaptive_v4
 ```
 
 새 tests는 오래된 outlier 감쇠/실제 반복 단차 유지, 미관측 셀 age 보존, grid yaw/mask,
-stride fallback, CNN batch shape와 grid gradient를 확인한다. 이번 작업에서는 실행하지 않았다.
+stride fallback, CNN batch shape와 grid gradient를 검사한다. 지형별 보행 시험과는 별개다.

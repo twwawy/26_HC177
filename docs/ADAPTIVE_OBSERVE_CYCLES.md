@@ -6,8 +6,8 @@ observe에서는 승급 성공률 때문에 3회 시도 뒤 중단되지 않는�
 실제 학습 오류·영상 저장 실패는 로그를 남기고 중단한다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/train_adaptive_curriculum.sh \
   --profile observe --cycles 5 \
   --perception teacher --run-name adaptive-observe-cycles \
@@ -40,7 +40,7 @@ bash scripts/train_adaptive_curriculum.sh \
 
 400k step은 비교를 위한 시작 설정이며 유의미한 개선을 보장하는 최소 학습량은 아니다.
 W&B 인증은 현재 머신의 로그인 계정을 사용한다. 이전 소스 checkpoint의 strict hash
-검사를 우회하지 않는다. 이번 변경의 학습·시뮬레이션·렌더링·업로드는 실행하지 않았다.
+검사를 유지한다.
 
 ## 명령어 조절표
 
@@ -64,7 +64,7 @@ W&B 인증은 현재 머신의 로그인 계정을 사용한다. 이전 소스 c
 | 센서 입력 종류 | `--perception` | `teacher` | `teacher` = GT 지형, `lidar` = LiDAR map. teacher 결과를 LiDAR 성공으로 해석하지 않음 |
 | 비교 seed | `--seed` | `40` | observe는 cycle마다 같은 seed; 실험 간 seed를 바꾸어 비교 가능 |
 | 실험 이름 / W&B group | `--run-name` | `adaptive-v4-curriculum` | 예: `flat-400k-5cycles`. 같은 이름 재사용 시 timestamp 자동 추가 |
-| 로컬 결과 상위 경로 | `--run-root` | `mjx/runs/adaptive-curriculum` | 예: `--run-root /home/huro/hexapod-runs` |
+| 로컬 결과 상위 경로 | `--run-root` | `mjx/runs/adaptive-curriculum` | 예: `--run-root ./mjx/runs` |
 | 기존 가중치에서 시작 | `--restore` | 없음 | 호환되는 checkpoint 또는 run 경로. 기존 결과를 덮어쓰는 resume은 아님 |
 | teacher로 LiDAR 초기화 | `--init-teacher` | 없음 | `--perception lidar`에서만 사용. `--restore`와 동시 사용 불가 |
 | W&B 연결 | `--wandb` | 켜짐 | 명령에 명시해 두면 연결 의도가 분명함. `--no-wandb`는 명시적 비활성 |
@@ -164,7 +164,7 @@ bash scripts/train_adaptive_gait.sh --help
 승급 성공률 best와 다르다. W&B 업로드 오류나 checkpoint 유실을 의미하지 않는다.
 
 중단 정보는 `failed_stage.json`에 checkpoint·다음 stage index와 함께 저장된다.
-사용자가 기준 미달이어도 다음 지형으로 진행하려면 `--start-index 1`과
+기준 미달이어도 다음 지형으로 진행하려면 `--start-index 1`과
 해당 checkpoint의 `--restore`를 지정한다. 이후에도 재시도 소진 시 계속하려면
 `--on-stage-failure advance`를 추가한다. 이 옵션은 LiDAR/planner HOLD 문제를
 고치는 것이 아니라 curriculum 운영 동작만 변경한다. low-level safety는 유지된다.

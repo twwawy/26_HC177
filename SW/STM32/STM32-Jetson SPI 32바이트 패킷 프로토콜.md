@@ -63,7 +63,7 @@ Protocol version = 3
 | COMMAND | `0x2` | `0x32` |
 | GPS | `0x5` | `0x35` |
 
-이번 변경은 전송 길이와 COMMAND CRC 위치가 v2와 호환되지 않으므로 프로토콜 버전을 3으로 올렸다. Jetson의 기존 v2 파서는 그대로 사용할 수 없다.
+이 변경은 전송 길이와 COMMAND CRC 위치가 v2와 호환되지 않으므로 프로토콜 버전을 3으로 올렸다. Jetson의 기존 v2 파서는 그대로 사용할 수 없다.
 
 ## 5. SENSOR Subframe, MISO Byte 0~31
 

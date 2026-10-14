@@ -60,7 +60,7 @@ Hexapod Robot 제작에 사용하는 주요 부품의 수량, 용도와 구매�
 
 - **개수**: 1봉
 - **용도**: 로봇 조립용 볼트
-- **구매링크**: [Coupang](https://www.coupang.com/vp/products/7877154060?utm_source=chatgpt.com)
+- **구매링크**: [Coupang](https://www.coupang.com/vp/products/7877154060)
 
 ---
 

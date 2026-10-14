@@ -7,13 +7,13 @@
 상위 입력은 `[vx, wz]`이고 다리/관절 실행은 위치 기반이다. RC 모드는
 전진·후진·제자리 좌/우 회전·전후진 곡선·정지 명령을 입력받는 residual policy를 학습한다.
 학습 중 물리 조종기를 연결하는 대신 JAX fixed-shape sampler로 조작 명령을 생성한다.
-실제 RC 수신기/Jetson/STM32 통신 연결을 추가한 작업은 아니다.
+실제 RC 수신기·Jetson·STM32의 통신 연결은 별도로 구성해야 한다.
 
 `--command-mode terrain`은 기존 전진 등판 task, `--command-mode rc`는 자유 조종 추종 task다.
 작업 구분은 checkpoint metadata에 저장하며 다른 task의 가중치를 자동 restore하지 않는다.
 24-D action과 CNN 관측 크기, terrain_mid residual 권한은 유지한다. 과거 source-hash
 계약의 checkpoint는 이전 코드에서 재생해야 한다. 이미 실행 중인 PPO를 자동 변경하지 않는다.
-이 변경의 학습·rollout·unit test는 실행하지 않았다.
+RC 명령 추종 성능과 실물 조종 성능은 별도 평가 대상이다.
 
 ## 조종 명령과 목표
 
@@ -56,8 +56,8 @@ Viewer는 checkpoint의 task를 따르되 `external_commands=True`로 자동 sam
 구현하지 않았으며, 이후 command-conditioned terrain course/명령 분포를 함께 설계해야 한다.
 
 ```bash
-cd /home/huro/Hexapod-Robot-integration
-source /home/huro/.venvs/hexapod-mjx/bin/activate
+cd Hexapod-Robot
+source "$HOME/.venvs/hexapod-mjx/bin/activate"
 bash scripts/train_adaptive_curriculum.sh \
   --profile rc --command-mode rc --perception teacher \
   --run-name adaptive-rc-gt-flat \
@@ -89,7 +89,6 @@ untracked 파일은 복사되지 않는다. 모델/소스 의존 파일도 commi
 체크포인트 source hash 검증은 유지한다. 과거 계단 checkpoint를 새 RC task로
 자동 변환하지 않으며, 이번 RC 학습의 **첫 실행에는 `--restore`를 넣지 않는다.**
 이후 동일 RC run 내 retry/승급에서는 manager가 직전 checkpoint를 이어받는 것이 정상이다.
-학습·영상 생성·시뮬레이션 검증은 사용자가 실행한다.
 
 ## 기록
 
@@ -104,6 +103,6 @@ untracked 파일은 복사되지 않는다. 모델/소스 의존 파일도 commi
 - RC 비교의 `forward_m`는 출발 방향 순변위로, 후진/회전을 포함한 policy의 우열 지표가 아니다.
   `comparison/*/command/linear_error_mps`, `comparison/*/command/yaw_error_radps`를 우선 본다.
 
-사용자용 단위 검사: `python -m unittest mjx.tests.test_operator_commands`.
+명령 생성 단위 시험: `python -m unittest mjx.tests.test_operator_commands`.
 부호 있는 후진/yaw/정지 보상, 정지로 저속 명령 통과 방지, deadband에서의 slew 탈출,
-fixed-size batched sampler를 검사한다. 이번 작업에서는 실행하지 않았다.
+fixed-size batched sampler를 검사한다.
