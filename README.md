@@ -61,6 +61,13 @@
 
 ## 2. 팀원 소개
 
+| 팀원 | 담당 역할 |
+|---|---|
+| 멘티1 | Simulink를 활용한 보행 제어기 설계 |
+| 멘티2 | Isaac Sim을 활용한 보행 강화학습 |
+| 멘티3 | Isaac Sim을 활용한 SLAM 및 경로 생성 |
+| 멘티4 | Fusion 360을 활용한 3D 설계 |
+
 ---
 
 ## 3. 시스템 구성도
@@ -120,6 +127,8 @@ Jetson–STM32 지형 적응 경로는 128바이트 SPI 프레임을 사용한�
 ---
 
 ## 4. 작품 소개영상
+
+[![모듈형 재난대응 6족 로봇 소개영상](https://img.youtube.com/vi/klPdgZPBS-Q/hqdefault.jpg)](https://youtu.be/klPdgZPBS-Q)
 
 ---
 
